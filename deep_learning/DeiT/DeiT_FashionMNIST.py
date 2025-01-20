@@ -19,6 +19,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm  
 import pdb
 from tools import *
+from ViT.ViT_FashionMNIST import *
+from VGG.VGG_FashionMNIST import *
 
 def train_and_valid_with_teacher(model,teacher,train_dataloader,valid_dataloader,criterion,teaching_criterion,optimizer,
                     output_cache,device,file_name,batch_tqdm=False,
@@ -36,7 +38,7 @@ def train_and_valid_with_teacher(model,teacher,train_dataloader,valid_dataloader
         for batch, (X,y) in enumerate(train_iter):
             
             y_pred = model(X.to(device))
-            y_teach = teacher(X.device(device)) 
+            y_teach = teacher(X.to(device)) 
             batch_loss = criterion(y_pred,y.to(device)) + teaching_criterion(y_pred,y_teach)
             optimizer.zero_grad()
             batch_loss.backward()
@@ -113,16 +115,16 @@ if __name__=="__main__":
     model = ViT(img_size, patch_size, num_hiddens, mlp_num_hiddens, num_heads,
                 num_blks, emb_dropout, blk_dropout, lr)
 
-    teacher = torch.load('~/Deep-Learning-Demos/deep_learning/models/VGG_FashionMNIST.pth')
+    teacher = torch.load('./models/VGG_FashionMNIST.pth')
 
     model.to(device)
     optimizer = optim.SGD(model.parameters(),lr=1e-2)
-    teacher.to_device()
+    teacher.to(device)
     def teaching_criterion(y_pred,y_true,T=5):
         return -(torch.softmax(y_true,dim=1)*y_pred).sum()
 
 
-    trainer = train_and_valid_with_teacher(model,train_dataloader,valid_dataloader,criterion=nn.CrossEntropyLoss(),teaching_criterion=teaching_criterion,optimizer=optimizer,
+    trainer = train_and_valid_with_teacher(model,teacher,train_dataloader,valid_dataloader,criterion=nn.CrossEntropyLoss(),teaching_criterion=teaching_criterion,optimizer=optimizer,
                             output_cache = '~/Deep-Learning-Demos/deep_learning/DeiT', device = device,file_name='DeiT_FashionMNIST', batch_tqdm=False,
                             max_epochs=1)
 
