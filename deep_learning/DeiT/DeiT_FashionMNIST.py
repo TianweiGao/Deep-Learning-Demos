@@ -121,11 +121,11 @@ if __name__=="__main__":
     optimizer = optim.SGD(model.parameters(),lr=1e-2)
     teacher.to(device)
     def teaching_criterion(y_pred,y_true,T=5):
-        return -(torch.softmax(y_true,dim=1)*y_pred).sum()
+        return -(torch.softmax(y_true*T,dim=1)*y_pred).mean()
 
 
     trainer = train_and_valid_with_teacher(model,teacher,train_dataloader,valid_dataloader,criterion=nn.CrossEntropyLoss(),teaching_criterion=teaching_criterion,optimizer=optimizer,
-                            output_cache = '~/Deep-Learning-Demos/deep_learning/DeiT', device = device,file_name='DeiT_FashionMNIST', batch_tqdm=False,
+                            output_cache = './models/', device = device,file_name='DeiT_FashionMNIST', batch_tqdm=False,
                             max_epochs=1)
 
 
